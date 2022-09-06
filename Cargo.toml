@@ -2,7 +2,11 @@
 name = "bassert"
 version = "1.0.0"
 edition = "2021"
+license = "MIT"
+description = "A 'better assert' which prints the values of the operands of any boolean expression on assertion failure."
+repository = "https://github.com/Qqwy/rust-bassert"
 authors = ["Qqwy/Wiebe-Marten Wijnja"]
+keywords = ["testing", "assert", "assertions", "debug_assert"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
