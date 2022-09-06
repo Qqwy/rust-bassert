@@ -28,9 +28,9 @@
 ///  ## Requirements
 ///
 ///  - The left-hand-side and right-hand-side operands both need to implement the [`std::fmt::Debug`] trait.
-///  - The particular traits required to evaluate the expression under consideration needs to be implemented. E.g. [`PartialEq`] or [`PartialOrd`]
-///  - If complex expressions are used as one (or both) of the operands, extra parentheses are required (it's a good idea for legibility,
-///    but also a requirement because of how the macro is written).
+///  - The particular traits required to evaluate the expression under consideration needs to be implemented. E.g. [`PartialEq`] or [`PartialOrd`].
+///  - If complex expressions are used as one (or both) of the operands, extra parentheses are required. This is a good idea for legibility,
+///    but also a requirement because of how the macro is written. If you forget, the compiler will remind you with a compiler error.
 ///
 /// # Examples
 /// This will happily pass:
@@ -54,8 +54,22 @@
 /// # fn main() {
 /// let x = 10;
 /// let y = 20;
-/// bassert!(y < x)
+/// bassert!(y < x);
 /// # }
+/// ```
+///
+/// # A note on using `=`
+///
+/// The `=` operator cannot do _everything_ that is possible with [`std::assert_matches::assert_matches!`].
+/// It allows exactly those cases that work in a normal `let` or `if let`.
+///
+/// Simplified, `bassert!(Some(_) = y)` expands to:
+/// ```ignore
+/// if(let Some(_) = y) {
+///   // Assertion succeeds :-)
+/// } else {
+///   panic!("assertion failed: `Some(_) = y`\ny: `{:?}`", y);
+/// }
 /// ```
 #[macro_export]
 macro_rules! bassert {
