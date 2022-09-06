@@ -419,6 +419,16 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(
+        expected = "assertion failed: `larger == smaller`\nlarger: `3`,\nsmaller: `2`: Huge explosions!"
+    )]
+    fn eq_failure_with_custom_message_prints_correct_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(larger == smaller, "{} explosions!", "Huge");
+    }
+
+    #[test]
     fn neq_success_passes() {
         let smaller = 2;
         let larger = 3;
@@ -431,6 +441,16 @@ mod tests {
         let foo = 42;
         let bar = 42;
         bassert!(foo != bar);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: `foo != bar`\nfoo: `42`,\nbar: `42`: It be broken"
+    )]
+    fn neq_failure_with_custom_message_prints_correct_message() {
+        let foo = 42;
+        let bar = 42;
+        bassert!(foo != bar, "It be {}", "broken");
     }
 
     #[test]
