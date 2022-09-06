@@ -387,6 +387,16 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(
+        expected = "assertion failed: `smaller >= larger`\nsmaller: `2`,\nlarger: `3`: it was not larger at all"
+    )]
+    fn gte_failure_with_custom_message_prints_correct_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(smaller >= larger, "it was not larger {}", "at all");
+    }
+
+    #[test]
     fn lte_success_passes() {
         let larger = 3;
         let smaller = 2;
@@ -401,6 +411,16 @@ mod tests {
         let larger = 3;
         let smaller = 2;
         bassert!(larger <= smaller);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: `larger <= smaller`\nlarger: `3`,\nsmaller: `2`: it was not smaller at all"
+    )]
+    fn lte_failure_with_custom_message_prints_correct_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(larger <= smaller, "it was not smaller {}", "at all");
     }
 
     #[test]
