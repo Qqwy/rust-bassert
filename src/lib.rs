@@ -3,49 +3,115 @@
 #[macro_export]
 macro_rules! bassert {
     ($lhs:tt > $rhs:tt) => {
-        let lhs = $lhs;
-        let rhs = $rhs;
-        assert!(
+        bassert_internal!(
+            $crate::internal::BassertKind::Gt,
             lhs > rhs,
-            "assertion failed: `{} > {}`\n{}: `{:?}`\n{}: `{:?}`\n",
-            stringify!($lhs),
-            stringify!($rhs),
-            stringify!($lhs),
+            $lhs,
+            $rhs,
             lhs,
-            stringify!($rhs),
             rhs
         )
     };
 
     ($lhs:tt < $rhs:tt) => {
-        let lhs = $lhs;
-        let rhs = $rhs;
-        assert!(
+        bassert_internal!(
+            $crate::internal::BassertKind::Lt,
             lhs < rhs,
-            "assertion failed: `{} < {}`\n{}: `{:?}`\n{}: `{:?}`\n",
-            stringify!($lhs),
-            stringify!($rhs),
-            stringify!($lhs),
+            $lhs,
+            $rhs,
             lhs,
-            stringify!($rhs),
             rhs
         )
     };
 
     ($lhs:tt == $rhs:tt) => {
-        let lhs = $lhs;
-        let rhs = $rhs;
-        assert!(
+        bassert_internal!(
+            $crate::internal::BassertKind::Eq,
             lhs == rhs,
-            "assertion failed: `{} == {}`\n{}: `{:?}`\n{}: `{:?}`\n",
-            stringify!($lhs),
-            stringify!($rhs),
-            stringify!($lhs),
+            $lhs,
+            $rhs,
             lhs,
-            stringify!($rhs),
             rhs
         )
     };
+}
+
+macro_rules! bassert_internal {
+    ($kind:expr, $expr:expr, $lhs_expr:tt, $rhs_expr:tt, $lhs_var:ident, $rhs_var:ident) => {
+        match (&$lhs_expr, &$rhs_expr) {
+            ($lhs_var, $rhs_var) => {
+                if !$expr {
+                    let kind = $kind;
+                    $crate::internal::bassert_failed(
+                        kind,
+                        stringify!($lhs_expr),
+                        stringify!($rhs_expr),
+                        &*$lhs_var,
+                        &*$rhs_var,
+                        None,
+                    )
+                }
+            }
+        }
+    };
+}
+
+pub mod internal {
+    use std::fmt;
+
+    #[derive(Debug)]
+    #[doc(hidden)]
+    pub enum BassertKind {
+        Eq,
+        Ne,
+        Gt,
+        Lt,
+        Gte,
+        Lte,
+        Match,
+    }
+
+    #[cold]
+    #[track_caller]
+    #[doc(hidden)]
+    pub fn bassert_failed<Lhs, Rhs>(
+        kind: BassertKind,
+        lhs_expr: &'static str,
+        rhs_expr: &'static str,
+        lhs: &Lhs,
+        rhs: &Rhs,
+        args: Option<fmt::Arguments<'_>>,
+    ) -> !
+    where
+        Lhs: fmt::Debug + ?Sized,
+        Rhs: fmt::Debug + ?Sized,
+    {
+        let op = match kind {
+            BassertKind::Eq => "==",
+            BassertKind::Ne => "!=",
+            BassertKind::Gt => ">",
+            BassertKind::Lt => "<",
+            BassertKind::Gte => ">=",
+            BassertKind::Lte => "<=",
+            BassertKind::Match => "=",
+        };
+
+        match args {
+            Some(args) => panic!(
+                r#"assertion failed: `{} {} {}`
+{}: `{:?}`,
+{}: `{:?}`: {}"#,
+                lhs_expr, op, rhs_expr, lhs_expr, lhs, rhs_expr, rhs, args
+            ),
+
+            None => panic!(
+                r#"assertion failed: `{} {} {}`
+{}: `{:?}`,
+{}: `{:?}`"#,
+                lhs_expr, op, rhs_expr, lhs_expr, lhs, rhs_expr, rhs
+            ),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -60,7 +126,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed: `smaller > larger`\nsmaller: `2`\nlarger: `3`")]
+    #[should_panic(expected = "assertion failed: `smaller > larger`\nsmaller: `2`,\nlarger: `3`")]
     fn gt_failure_prints_correct_message() {
         let larger = 3;
         let smaller = 2;
@@ -75,7 +141,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed: `larger < smaller`\nlarger: `3`\nsmaller: `2`")]
+    #[should_panic(expected = "assertion failed: `larger < smaller`\nlarger: `3`,\nsmaller: `2`")]
     fn lt_failure_prints_correct_message() {
         let larger = 3;
         let smaller = 2;
@@ -90,11 +156,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed: `larger == smaller`\nlarger: `3`\nsmaller: `2`")]
+    #[should_panic(expected = "assertion failed: `larger == smaller`\nlarger: `3`,\nsmaller: `2`")]
     fn eq_failure_prints_correct_message() {
         let larger = 3;
         let smaller = 2;
         bassert!(larger == smaller);
-        // assert_eq!(larger, smaller)
     }
 }
