@@ -243,6 +243,10 @@ macro_rules! bassert {
             }
         }
     };
+
+     ($func_name:ident($($func_args:tt)+)) => {
+       panic!("Boom");
+     };
 }
 
 /// A version of [`bassert!`] which compiles down to a no-op outside of debug builds.
@@ -575,5 +579,10 @@ mod tests {
     fn match_failure_with_custom_message_prints_correct_message() {
         let val: Option<i64> = Some(100);
         bassert!(None = val, "That was unexpected! {} {}", "xyzzy", "plugh");
+    }
+
+    #[test]
+    fn boolean_function() {
+        bassert!(max(10, 20));
     }
 }
