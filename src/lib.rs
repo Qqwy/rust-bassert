@@ -2,7 +2,7 @@
 
 #[macro_export]
 macro_rules! bassert {
-    ($lhs:tt > $rhs:tt) => {
+    ($lhs:tt > $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Gt,
             lhs > rhs,
@@ -13,7 +13,19 @@ macro_rules! bassert {
         )
     };
 
-    ($lhs:tt < $rhs:tt) => {
+    ($lhs:tt > $rhs:tt, $($arg:tt)+) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Gt,
+            lhs > rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs,
+            $($arg)+
+        )
+    };
+
+    ($lhs:tt < $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Lt,
             lhs < rhs,
@@ -24,7 +36,7 @@ macro_rules! bassert {
         )
     };
 
-    ($lhs:tt >= $rhs:tt) => {
+    ($lhs:tt >= $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Gte,
             lhs >= rhs,
@@ -35,7 +47,7 @@ macro_rules! bassert {
         )
     };
 
-    ($lhs:tt <= $rhs:tt) => {
+    ($lhs:tt <= $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Lte,
             lhs <= rhs,
@@ -46,7 +58,7 @@ macro_rules! bassert {
         )
     };
 
-    ($lhs:tt == $rhs:tt) => {
+    ($lhs:tt == $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Eq,
             lhs == rhs,
@@ -57,7 +69,7 @@ macro_rules! bassert {
         )
     };
 
-    ($lhs:tt != $rhs:tt) => {
+    ($lhs:tt != $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Ne,
             lhs != rhs,
@@ -68,7 +80,7 @@ macro_rules! bassert {
         )
     };
 
-    ($lhs:pat = $rhs:tt) => {
+    ($lhs:pat = $rhs:tt $(,)?) => {
         match &$rhs {
             rhs => {
                 if let $lhs = rhs {
@@ -109,7 +121,25 @@ macro_rules! bassert_internal {
                         stringify!($rhs_expr),
                         &*$lhs_var,
                         &*$rhs_var,
-                        None,
+                        ::std::option::Option::None,
+                    )
+                }
+            }
+        }
+    };
+
+    ($kind:expr, $expr:expr, $lhs_expr:tt, $rhs_expr:tt, $lhs_var:ident, $rhs_var:ident, $($arg:tt)+) => {
+        match (&$lhs_expr, &$rhs_expr) {
+            ($lhs_var, $rhs_var) => {
+                if !$expr {
+                    let kind = $kind;
+                    $crate::internal::bassert_failed(
+                        kind,
+                        stringify!($lhs_expr),
+                        stringify!($rhs_expr),
+                        &*$lhs_var,
+                        &*$rhs_var,
+                        ::std::option::Option::Some(::std::format_args!($($arg)+)),
                     )
                 }
             }
@@ -211,6 +241,13 @@ mod tests {
         let larger = 3;
         let smaller = 2;
         bassert!(larger > smaller);
+        bassert!(larger > smaller, "foo bar {}", "some message");
+    }
+
+    #[test]
+    fn gt_complex_success_passes() {
+        let x = 33;
+        bassert!(x < (x + 10));
     }
 
     #[test]
@@ -219,6 +256,16 @@ mod tests {
         let larger = 3;
         let smaller = 2;
         bassert!(smaller > larger);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: `smaller > larger`\nsmaller: `2`,\nlarger: `3`: it is broken, because foo"
+    )]
+    fn gt_failure_with_custom_formatted_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(smaller > larger, "it is broken, because {}", "foo");
     }
 
     #[test]
