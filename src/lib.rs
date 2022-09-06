@@ -2,9 +2,9 @@
 
 /// A 'better assert' which asserts that a boolean expression is `true` at runtime, and prints the values of the operands.
 ///
-/// The basic usage of this macro is similar to `std::assert!`.
-/// It is meant as an improved replacement for `std::assert!`, `std::assert_eq!`, `std::assert_ne!`,
-/// and (basic usage of) the experimental `std::assert_matches::assert_matches!`
+/// The basic usage of this macro is similar to [`std::assert!`].
+/// It is meant as an improved replacement for [`std::assert!`], [`std::assert_eq!`], [`std::assert_ne!`],
+/// and (basic usage of) the experimental [`std::assert_matches::assert_matches!`]
 ///
 /// Instead of remembering multiple different assertion functions,
 /// all common assertions can be written as `bassert!(binary_expression)`,
@@ -27,8 +27,8 @@
 ///
 ///  ## Requirements
 ///
-///  - The left-hand-side and right-hand-side operands both need to implement the `fmt::Debug` trait.
-///  - The particular traits required to evaluate the expression under consideration needs to be implemented. E.g. `PartialEq`
+///  - The left-hand-side and right-hand-side operands both need to implement the [`std::fmt::Debug`] trait.
+///  - The particular traits required to evaluate the expression under consideration needs to be implemented. E.g. [`PartialEq`] or [`PartialOrd`]
 ///  - If complex expressions are used as one (or both) of the operands, extra parentheses are required (it's a good idea for legibility,
 ///    but also a requirement because of how the macro is written).
 ///
@@ -231,14 +231,14 @@ macro_rules! bassert {
     };
 }
 
-/// A version of `bassert` which compiles down to a no-op outside of debug builds.
+/// A version of [`bassert!`] which compiles down to a no-op outside of debug builds.
 ///
 /// In debug builds (where the `debug_assertions` config attribute it set), it will
-/// perform exactly the same as writing `bassert::bassert!`.
+/// perform exactly the same as writing [`bassert!`].
 ///
 /// In non-debug builds, it will be a no-op.
 ///
-/// Its usage is identical to the `bassert::bassert!` macro.
+/// Its usage is identical to the [`bassert!`] macro.
 #[macro_export]
 macro_rules! debug_bassert {
     ($($arg:tt)*) => {
@@ -290,6 +290,7 @@ macro_rules! bassert_internal {
     };
 }
 
+#[doc(hidden)]
 pub mod internal {
     use std::fmt;
 
