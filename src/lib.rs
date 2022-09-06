@@ -36,6 +36,18 @@ macro_rules! bassert {
         )
     };
 
+    ($lhs:tt < $rhs:tt, $($arg:tt)+) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Lt,
+            lhs < rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs,
+            $($arg)+
+        )
+    };
+
     ($lhs:tt >= $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Gte,
@@ -44,6 +56,17 @@ macro_rules! bassert {
             $rhs,
             lhs,
             rhs
+        )
+    };
+    ($lhs:tt >= $rhs:tt, $($arg:tt)+) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Gte,
+            lhs >= rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs,
+            $($arg)+
         )
     };
 
@@ -58,6 +81,18 @@ macro_rules! bassert {
         )
     };
 
+    ($lhs:tt <= $rhs:tt, $($arg:tt)+) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Lte,
+            lhs <= rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs,
+            $($arg)+
+        )
+    };
+
     ($lhs:tt == $rhs:tt $(,)?) => {
         bassert_internal!(
             $crate::internal::BassertKind::Eq,
@@ -66,6 +101,18 @@ macro_rules! bassert {
             $rhs,
             lhs,
             rhs
+        )
+    };
+
+    ($lhs:tt == $rhs:tt, $($arg:tt)+) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Eq,
+            lhs == rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs,
+            $($arg)+
         )
     };
 
@@ -80,6 +127,18 @@ macro_rules! bassert {
         )
     };
 
+    ($lhs:tt != $rhs:tt, $($arg:tt)+) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Ne,
+            lhs != rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs,
+            $($arg)+
+        )
+    };
+
     ($lhs:pat = $rhs:tt $(,)?) => {
         match &$rhs {
             rhs => {
@@ -90,7 +149,24 @@ macro_rules! bassert {
                         stringify!($lhs),
                         stringify!($rhs),
                         &*rhs,
-                        None,
+                        ::std::option::Option::None,
+                    )
+                }
+            }
+        }
+    };
+
+    ($lhs:pat = $rhs:tt, $($arg:tt)+) => {
+        match &$rhs {
+            rhs => {
+                if let $lhs = rhs {
+                    // Assertion succeeded :-)
+                } else {
+                    $crate::internal::bassert_match_failed(
+                        stringify!($lhs),
+                        stringify!($rhs),
+                        &*rhs,
+                        ::std::option::Option::Some(::std::format_args!($($arg)+)),
                     )
                 }
             }
@@ -282,6 +358,17 @@ mod tests {
         let smaller = 2;
         bassert!(larger < smaller);
     }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: `larger < smaller`\nlarger: `3`,\nsmaller: `2`: it is broken, because foo"
+    )]
+    fn lt_failure_with_custom_formatted_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(larger < smaller, "it is broken, because {}", "foo");
+    }
+
     #[test]
     fn gte_success_passes() {
         let larger = 3;
