@@ -7,7 +7,7 @@ macro_rules! bassert {
         let rhs = $rhs;
         assert!(
             lhs > rhs,
-            "Assertion `{} > {}` failed.\n\t{} = {:#?}\n\t{} = {:#?}\n",
+            "assertion failed: `{} > {}`\n{}: `{:?}`\n{}: `{:?}`\n",
             stringify!($lhs),
             stringify!($rhs),
             stringify!($lhs),
@@ -22,7 +22,7 @@ macro_rules! bassert {
         let rhs = $rhs;
         assert!(
             lhs < rhs,
-            "Assertion `{} < {}` failed.\n\t{} = {:#?}\n\t{} = {:#?}\n",
+            "assertion failed: `{} < {}`\n{}: `{:?}`\n{}: `{:?}`\n",
             stringify!($lhs),
             stringify!($rhs),
             stringify!($lhs),
@@ -35,10 +35,9 @@ macro_rules! bassert {
     ($lhs:tt == $rhs:tt) => {
         let lhs = $lhs;
         let rhs = $rhs;
-        assert_eq!(
-            lhs,
-            rhs,
-            "Assertion `{} == {}` failed.\n\t{} = {:#?}\n\t{} = {:#?}\n",
+        assert!(
+            lhs == rhs,
+            "assertion failed: `{} == {}`\n{}: `{:?}`\n{}: `{:?}`\n",
             stringify!($lhs),
             stringify!($rhs),
             stringify!($lhs),
@@ -61,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Assertion `smaller > larger` failed.\n\tsmaller = 2\n\tlarger = 3")]
+    #[should_panic(expected = "assertion failed: `smaller > larger`\nsmaller: `2`\nlarger: `3`")]
     fn gt_failure_prints_correct_message() {
         let larger = 3;
         let smaller = 2;
@@ -76,10 +75,26 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Assertion `larger < smaller` failed.\n\tlarger = 3\n\tsmaller = 2")]
+    #[should_panic(expected = "assertion failed: `larger < smaller`\nlarger: `3`\nsmaller: `2`")]
     fn lt_failure_prints_correct_message() {
         let larger = 3;
         let smaller = 2;
         bassert!(larger < smaller);
+    }
+
+    #[test]
+    fn eq_success_passes() {
+        let foo = 42;
+        let bar = 42;
+        bassert!(foo == bar);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: `larger == smaller`\nlarger: `3`\nsmaller: `2`")]
+    fn eq_failure_prints_correct_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(larger == smaller);
+        // assert_eq!(larger, smaller)
     }
 }
