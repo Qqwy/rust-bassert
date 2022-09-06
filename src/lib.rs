@@ -240,6 +240,8 @@ mod tests {
         let larger = 3;
         let smaller = 2;
         bassert!(larger >= smaller);
+        bassert!(larger >= larger);
+        bassert!(smaller >= smaller);
     }
 
     #[test]
@@ -255,6 +257,8 @@ mod tests {
         let larger = 3;
         let smaller = 2;
         bassert!(smaller <= larger);
+        bassert!(smaller <= smaller);
+        bassert!(larger <= larger);
     }
 
     #[test]
