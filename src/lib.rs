@@ -1,11 +1,3 @@
-#![feature(trace_macros)]
-
-fn boolean_function() {
-    let x = false;
-    let y = true;
-    bassert!(std::cmp::min(x, y && x));
-}
-
 /// A 'better assert' which asserts that a boolean expression is `true` at runtime, and prints the values of the operands.
 ///
 /// The basic usage of this macro is similar to [`std::assert!`].
@@ -270,27 +262,6 @@ macro_rules! bassert {
                 }
             }
         }
-    };
-
-     ($($func_name:ident)::+ ( $($func_args:expr),* )) => {
-        if ($($func_name)::+($($func_args),+)) {
-
-        } else {
-            let expr_str = stringify!($($func_name)::+($($func_args),+));
-            panic!("assertion failed: `{}`\n{}", expr_str, $crate::format_params!($($func_args),+));
-        }
-     };
-}
-
-#[macro_export]
-#[doc(hidden)]
-macro_rules! format_params {
-    () => {""};
-    ($param:expr) => {
-        std::format_args!("{}: {:?}\n", stringify!($param), ($param))
-    };
-    ($param:expr, $($rest:expr),*) => {
-        ::std::format_args!("{}: {:?}\n{}", stringify!($param), ($param), format_params!($($rest),*))
     };
 }
 
@@ -624,14 +595,5 @@ mod tests {
     fn match_failure_with_custom_message_prints_correct_message() {
         let val: Option<i64> = Some(100);
         bassert!(None = val, "That was unexpected! {} {}", "xyzzy", "plugh");
-    }
-
-    #[test]
-    fn boolean_function() {
-        trace_macros!(true);
-        let x = false;
-        let y = true;
-        bassert!(std::cmp::min(x, y && x));
-        trace_macros!(false);
     }
 }
