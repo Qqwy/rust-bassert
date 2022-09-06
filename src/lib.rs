@@ -67,6 +67,23 @@ macro_rules! bassert {
             rhs
         )
     };
+
+    ($lhs:pat = $rhs:tt) => {
+        match &$rhs {
+            rhs => {
+                if let $lhs = rhs {
+                    // Assertion succeeded :-)
+                } else {
+                    $crate::internal::bassert_match_failed(
+                        stringify!($lhs),
+                        stringify!($rhs),
+                        &*rhs,
+                        None,
+                    )
+                }
+            }
+        }
+    };
 }
 
 #[macro_export]
@@ -78,6 +95,8 @@ macro_rules! debug_bassert {
      };
 }
 
+// This macro is only used internally in another macro
+#[allow(unused_macros)]
 macro_rules! bassert_internal {
     ($kind:expr, $expr:expr, $lhs_expr:tt, $rhs_expr:tt, $lhs_var:ident, $rhs_var:ident) => {
         match (&$lhs_expr, &$rhs_expr) {
@@ -154,6 +173,33 @@ pub mod internal {
             ),
         }
     }
+
+    #[cold]
+    #[track_caller]
+    #[doc(hidden)]
+    pub fn bassert_match_failed<Rhs>(
+        pattern: &'static str,
+        rhs_expr: &'static str,
+        rhs: &Rhs,
+        args: Option<fmt::Arguments<'_>>,
+    ) -> !
+    where
+        Rhs: fmt::Debug + ?Sized,
+    {
+        match args {
+            Some(args) => panic!(
+                r#"assertion failed: `{} = {}`
+{}: `{:?}`: {}"#,
+                pattern, rhs_expr, rhs_expr, rhs, args
+            ),
+
+            None => panic!(
+                r#"assertion failed: `{} = {}`
+{}: `{:?}`"#,
+                pattern, rhs_expr, rhs_expr, rhs
+            ),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -218,5 +264,18 @@ mod tests {
         let foo = 42;
         let bar = 42;
         bassert!(foo != bar);
+    }
+
+    #[test]
+    fn match_success_passes() {
+        let val: Option<i64> = Some(100);
+        bassert!(Some(_) = val);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: `None = val`\nval: `Some(100)`")]
+    fn match_failure_prints_correct_message() {
+        let val: Option<i64> = Some(100);
+        bassert!(None = val);
     }
 }
