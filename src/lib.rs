@@ -1,9 +1,57 @@
 #![feature(trace_macros)]
 
+/// A 'better assert' which asserts that a boolean expression is `true` at runtime, and prints the values of the operands.
+///
+/// # Supported operators
+/// - `==` (equals)
+/// - `!=` (not equals)
+/// - `>` (greater than)
+/// - `>=` (greater than or equals)
+/// - `<` (less than)
+/// - `<=` (less than or equals)
+/// - `=` (match)
+///
+/// In all of these cases, if the assertion fails, the panic message will contain:
+///  - the passed expression
+///  - the actual value of the left-hand-side and right-hand-side operands to the operator.
+///  - If a custom format string (and optional extra arguments) were passed, these are printed as well.
+///
+///  ## Requirements
+///
+///  - The left-hand-side and right-hand-side operands both need to implement the `fmt::Debug` trait.
+///  - The particular traits required to evaluate the expression under consideration needs to be implemented. E.g. `PartialEq`
+///  - If complex expressions are used as one (or both) of the operands, extra parentheses are required (it's a good idea for legibility,
+///    but also a requirement because of how the macro is written).
+///
+/// # Examples
+/// This will happily pass:
+/// ```
+/// # #[macro_use] extern crate bassert;
+/// # fn main() {
+/// let x = 10;
+/// let y = 20;
+/// bassert!(x < y) // Will happily pass
+/// # }
+/// ```
+///
+/// The following will panic, with the message
+/// ```text
+/// assertion failed: `y < x`
+/// y: `20`,
+/// x: `10`
+/// ```
+/// ```should_panic
+/// # #[macro_use] extern crate bassert;
+/// # fn main() {
+/// let x = 10;
+/// let y = 20;
+/// bassert!(y < x)
+/// # }
+/// ```
 #[macro_export]
 macro_rules! bassert {
     ($lhs:tt > $rhs:tt $(,)?) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Gt,
             lhs > rhs,
             $lhs,
@@ -14,7 +62,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt > $rhs:tt, $($arg:tt)+) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Gt,
             lhs > rhs,
             $lhs,
@@ -26,7 +74,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt < $rhs:tt $(,)?) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Lt,
             lhs < rhs,
             $lhs,
@@ -37,7 +85,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt < $rhs:tt, $($arg:tt)+) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Lt,
             lhs < rhs,
             $lhs,
@@ -49,7 +97,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt >= $rhs:tt $(,)?) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Gte,
             lhs >= rhs,
             $lhs,
@@ -59,7 +107,7 @@ macro_rules! bassert {
         )
     };
     ($lhs:tt >= $rhs:tt, $($arg:tt)+) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Gte,
             lhs >= rhs,
             $lhs,
@@ -71,7 +119,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt <= $rhs:tt $(,)?) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Lte,
             lhs <= rhs,
             $lhs,
@@ -82,7 +130,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt <= $rhs:tt, $($arg:tt)+) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Lte,
             lhs <= rhs,
             $lhs,
@@ -94,7 +142,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt == $rhs:tt $(,)?) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Eq,
             lhs == rhs,
             $lhs,
@@ -105,7 +153,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt == $rhs:tt, $($arg:tt)+) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Eq,
             lhs == rhs,
             $lhs,
@@ -117,7 +165,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt != $rhs:tt $(,)?) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Ne,
             lhs != rhs,
             $lhs,
@@ -128,7 +176,7 @@ macro_rules! bassert {
     };
 
     ($lhs:tt != $rhs:tt, $($arg:tt)+) => {
-        bassert_internal!(
+        $crate::bassert_internal!(
             $crate::internal::BassertKind::Ne,
             lhs != rhs,
             $lhs,
@@ -184,6 +232,8 @@ macro_rules! debug_bassert {
 }
 
 // This macro is only used internally in another macro
+#[macro_export]
+#[doc(hidden)]
 #[allow(unused_macros)]
 macro_rules! bassert_internal {
     ($kind:expr, $expr:expr, $lhs_expr:tt, $rhs_expr:tt, $lhs_var:ident, $rhs_var:ident) => {
