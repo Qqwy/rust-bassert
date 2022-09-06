@@ -445,4 +445,13 @@ mod tests {
         let val: Option<i64> = Some(100);
         bassert!(None = val);
     }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: `None = val`\nval: `Some(100)`: That was unexpected! xyzzy plugh"
+    )]
+    fn match_failure_with_custom_message_prints_correct_message() {
+        let val: Option<i64> = Some(100);
+        bassert!(None = val, "That was unexpected! {} {}", "xyzzy", "plugh");
+    }
 }
