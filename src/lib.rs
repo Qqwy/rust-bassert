@@ -90,6 +90,7 @@
 /// } else {
 ///   panic!("assertion failed: `Some(_) = y`\ny: `{:?}`", y);
 /// }
+///
 /// ```
 #[macro_export]
 macro_rules! bassert {
