@@ -24,10 +24,43 @@ macro_rules! bassert {
         )
     };
 
+    ($lhs:tt >= $rhs:tt) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Gte,
+            lhs >= rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs
+        )
+    };
+
+    ($lhs:tt <= $rhs:tt) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Lte,
+            lhs <= rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs
+        )
+    };
+
     ($lhs:tt == $rhs:tt) => {
         bassert_internal!(
             $crate::internal::BassertKind::Eq,
             lhs == rhs,
+            $lhs,
+            $rhs,
+            lhs,
+            rhs
+        )
+    };
+
+    ($lhs:tt != $rhs:tt) => {
+        bassert_internal!(
+            $crate::internal::BassertKind::Ne,
+            lhs != rhs,
             $lhs,
             $rhs,
             lhs,
@@ -161,5 +194,20 @@ mod tests {
         let larger = 3;
         let smaller = 2;
         bassert!(larger == smaller);
+    }
+
+    #[test]
+    fn neq_success_passes() {
+        let smaller = 2;
+        let larger = 3;
+        bassert!(smaller != larger);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: `foo != bar`\nfoo: `42`,\nbar: `42`")]
+    fn neq_failure_prints_correct_message() {
+        let foo = 42;
+        let bar = 42;
+        bassert!(foo != bar);
     }
 }
