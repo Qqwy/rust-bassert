@@ -39,16 +39,11 @@
 /// # fn main() {
 /// let x = 10;
 /// let y = 20;
-/// bassert!(x < y) // Will happily pass
+/// bassert!(x < y) // All was happy in the world
 /// # }
 /// ```
 ///
-/// The following will panic, with the message
-/// ```text
-/// assertion failed: `y < x`
-/// y: `20`,
-/// x: `10`
-/// ```
+/// The following will panic.
 /// ```should_panic
 /// # #[macro_use] extern crate bassert;
 /// # fn main() {
@@ -56,6 +51,33 @@
 /// let y = 20;
 /// bassert!(y < x);
 /// # }
+/// ```
+/// It will panic with the message:
+/// ```text
+/// assertion failed: `y < x`
+/// y: `20`,
+/// x: `10`
+/// ```
+///
+/// ## Custom messages
+/// You can optionally pass a custom panic message with or without arguments for formatting. (Using the [`std::fmt`] syntax)
+/// The expressions used as format arguments will only be evaluated if the assertion fails.
+///
+/// The custom panic message will not replace the normal panic message, but will be printed
+/// at the end of the normal message:
+///
+/// ```should_panic
+/// # #[macro_use] extern crate bassert;
+/// # fn main() {
+/// let x = 10;
+/// bassert!(x > (x + 2), "to surprise of no-one, x is not larger than x plus two. {}", "some_extra_argument")
+/// # }
+/// ```
+/// This will panic with the message:
+/// ```text
+/// assertion failed: `x > (x + 2)`
+/// x: `10`,
+/// (x + 2): `12`: to surprise of no-one, x is not larger than x plus two. some extra argument
 /// ```
 ///
 /// # A note on using `=`
@@ -581,8 +603,8 @@ mod tests {
         bassert!(None = val, "That was unexpected! {} {}", "xyzzy", "plugh");
     }
 
-    #[test]
-    fn boolean_function() {
-        bassert!(max(10, 20));
-    }
+    // #[test]
+    // fn boolean_function() {
+    //     bassert!(max(10, 20));
+    // }
 }
