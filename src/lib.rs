@@ -69,6 +69,15 @@ macro_rules! bassert {
     };
 }
 
+#[macro_export]
+macro_rules! debug_bassert {
+    ($($arg:tt)*) => {
+         if $crate::cfg!(debug_assertions) {
+             $crate::bassert!($($arg)*);
+         }
+     };
+}
+
 macro_rules! bassert_internal {
     ($kind:expr, $expr:expr, $lhs_expr:tt, $rhs_expr:tt, $lhs_var:ident, $rhs_var:ident) => {
         match (&$lhs_expr, &$rhs_expr) {
