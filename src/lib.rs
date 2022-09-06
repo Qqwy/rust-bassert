@@ -235,6 +235,35 @@ mod tests {
         let smaller = 2;
         bassert!(larger < smaller);
     }
+    #[test]
+    fn gte_success_passes() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(larger >= smaller);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: `smaller >= larger`\nsmaller: `2`,\nlarger: `3`")]
+    fn gte_failure_prints_correct_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(smaller >= larger);
+    }
+
+    #[test]
+    fn lte_success_passes() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(smaller <= larger);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: `larger <= smaller`\nlarger: `3`,\nsmaller: `2`")]
+    fn lte_failure_prints_correct_message() {
+        let larger = 3;
+        let smaller = 2;
+        bassert!(larger <= smaller);
+    }
 
     #[test]
     fn eq_success_passes() {
